@@ -1,5 +1,5 @@
 #####################
-## script AD P9 OC ##
+### script AD P9 ###
 #####################
 
 try {
@@ -37,7 +37,7 @@ try {
     }
 
     # Import du fichier CSV
-    $CSVFile = "\\vmware-host\Shared Folders\Partage VMware\Utilisateurs.csv"
+    $CSVFile = "\\vmware-host\Shared Folders\VMware\Utilisateurs.csv"
     $CSVData = Import-CSV -Path $CSVFile -Delimiter ";" -Encoding UTF8
 
     # Création de l'OU parente "DOMAINE BARZINI" si elle n'existe pas déjà
@@ -72,10 +72,6 @@ try {
         $UtilisateurLogin = $UtilisateurPrenom[0] + ".$UtilisateurNom".ToLower()
         $UtilisateurEmail = "$UtilisateurLogin@barzini.com".ToLower()
         $UtilisateurPoste = $Utilisateur.Poste
-        #$APIURL = "https://oc.damien-millet.dev/api/secret/12?special=true"
-        #$UtilisateurMotDePasse = (Invoke-RestMethod -Uri $APIURL).secret
-        #$UtilisateurMotDePasse
-        #$UtilisateurMotDePasse | Out-File -FilePath "C:\Users\Administrateur\Documents\passwords.txt" -Append
         $UtilisateurMotDePasse = "P@ssw0rd12345"
         $Departement = "OU_" + $Utilisateur.Departement  # Ajout du préfixe "OU_"
 
