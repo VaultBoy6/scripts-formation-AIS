@@ -1,0 +1,133 @@
+#############################
+### Scripts Ansible P9 PC ###
+#############################
+
+##### Playbooks pour Windows #####
+
+# windows-cca.yml
+
+- name: Déploiement de Colour Contrast Analyzer sur Windows
+  hosts: IPdelaVMWindows
+  #become: yes
+  tasks:
+    - name: Installer Colour Contrast Analyzer sur Windows
+      win_shell: winget install --silent TPGi.CCA
+      ansible_shell_type: cmd /c
+
+# windows-update.yml
+
+- name: Mise à jour de Windows
+  hosts: votre_vm_windows
+  become: yes
+  tasks:
+    - name: Rechercher des mises à jour
+      win_updates:
+        category_names:
+          - SecurityUpdates
+          - UpdateRollups
+          - CriticalUpdates
+          - FeaturePacks
+          - DefinitionUpdates
+        state: search
+
+    - name: Installer les mises à jour
+      win_updates:
+        category_names:
+          - SecurityUpdates
+          - UpdateRollups
+          - CriticalUpdates
+          - FeaturePacks
+          - DefinitionUpdates
+        state: installed
+
+# windows-mount.yml
+
+- name: Playbook pour créer une tâche planifiée de montage des lecteurs
+  hosts: WindowsClient4
+  tasks:
+    - name: Créer une tâche planifiée pour exécuter un script au démarrage
+      community.windows.win_scheduled_task:
+        name: Run script at boot
+        description: Cette tâche exécute un script de montage des lecteurs lors du démarrage
+        actions:
+          - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+            arguments: >
+              -Command "& {
+              net use E: \\SRV2022-DC\Departements\Administration /persistent:yes;
+              net use F: \\SRV2022-DC\Departements\Audio /persistent:yes;
+              net use G: \\SRV2022-DC\Departements\Dev /persistent:yes;
+              net use H: \\SRV2022-DC\Departements\Graphisme /persistent:yes;
+              net use I: \\SRV2022-DC\Departements\IT /persistent:yes;
+              net use J: \\SRV2022-DC\Departements\Prodcom /persistent:yes;
+              net use K: \\SRV2022-DC\Departements\Testing /persistent:yes;
+              net use U: \\SRV2022-DC\Utilisateurs /persistent:yes;
+              }"
+        triggers:
+          - type: boot
+            delay: PT1M
+        username: "{{ ansible_user }}"
+        state: present
+
+###############################
+###############################
+###############################
+
+##### Playbooks pour Ubuntu #####
+
+# ubuntu-kontrast.yml
+
+- name: Déploiement de Kontrast sur Ubuntu
+  hosts: IPdelaVMUbuntu
+  become: yes # en root
+  tasks:
+    - name: Installer Kontrast sur Ubuntu
+      apt:
+        name: kontrast
+        state: present
+
+# ubuntu-update.yml
+
+- name: Mise à jour d'Ubuntu
+  hosts: vIP de la VM Ubuntu
+  become: yes
+  tasks:
+    - name: Mise à jour des informations des paquets
+      apt:
+        update_cache: yes
+
+    - name: Mise à jour des paquets
+      apt:
+        upgrade: yes
+
+    - name: Suppression des paquets obsolètes
+      apt:
+        autoremove: yes        
+
+# ubuntu-mount.yml
+
+---
+- name: Exécuter un script de montage des lecteurs sur le client Ubuntu
+  hosts: UbuntuClient
+  become: true
+  become_method: sudo
+  tasks:
+    - name: Exécuter le script
+      ansible.builtin.shell: /home/script.sh
+
+# /home/script.sh
+
+#!/bin/bash
+# Script pour monter les partages
+# version : 1.0
+# auteur : Thomas PUYO
+# date : 2024-02-25
+
+# Création des dossiers Partages et Perso dans /mnt
+sudo mkdir /mnt/Partages
+sudo mkdir /mnt/Perso
+
+# Montage des partages Departements
+sudo mount -t cifs -o username=ansible,password=XXX //192.168.XXX.XXX/Departements /mnt/Partages -o uid=$(id -u),gid=$(id -g)
+
+# Montage du partage personnel Utilisateur
+sudo mount -t cifs -o username=ansible,password=XXX //192.168.XXX.XXX/Utilisateurs /mnt/Perso -o uid=$(id -u),gid=$(id -g)
